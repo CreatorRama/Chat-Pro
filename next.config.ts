@@ -11,11 +11,14 @@ type CustomNextConfig = NextConfig & {
 
 const nextConfig: CustomNextConfig = {
   images: {
-    domains: ['api.dicebear.com'],
-  },
-  experimental: {
-    turbopack: false,
-  },
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+        pathname: '/**',
+      },
+    ],
+  }
 };
 
 module.exports = nextConfig;
