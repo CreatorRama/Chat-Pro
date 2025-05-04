@@ -1,9 +1,18 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
+// Extend the experimental config types
+type CustomExperimentalConfig = {
+  turbopack?: boolean;
+};
+
+type CustomNextConfig = NextConfig & {
+  experimental?: CustomExperimentalConfig;
+};
+
+const nextConfig: CustomNextConfig = {
   experimental: {
-    turbo: false, // Disable Turbopack
+    turbopack: false,
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
