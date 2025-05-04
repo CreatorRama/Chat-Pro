@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
-
+import Image from 'next/image';
 
 type User = {
   id: string;
@@ -332,7 +332,7 @@ const MessagingApp = () => {
                     >
                       <span className="sr-only">Open user status menu</span>
                       <div className="relative">
-                        <img
+                        <Image
                           className="h-8 w-8 rounded-full"
                           src={currentUser.avatar}
                           alt={currentUser.name}
@@ -449,7 +449,7 @@ const MessagingApp = () => {
                         }`}
                     >
                       <div className="flex-shrink-0 relative">
-                        <img
+                        <Image
                           className={`h-8 w-8 rounded-full ${selectedUser?.id === user.id ? 'ring-2 ring-indigo-500' : ''}`}
                           src={user.avatar}
                           alt={user.name}
@@ -488,7 +488,7 @@ const MessagingApp = () => {
                         }`}
                     >
                       <div className="flex-shrink-0 relative">
-                        <img
+                        <Image
                           className={`h-8 w-8 rounded-full ${selectedUser?.id === user.id ? 'ring-2 ring-indigo-500' : ''}`}
                           src={user.avatar}
                           alt={user.name}
@@ -516,7 +516,7 @@ const MessagingApp = () => {
               <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-gray-200">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 relative">
-                    <img className="h-8 w-8 rounded-full" src={selectedUser.avatar} alt={selectedUser.name} />
+                    <Image className="h-8 w-8 rounded-full" src={selectedUser.avatar} alt={selectedUser.name} />
                     <span
                       className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white ${statusColors[selectedUser.status]}`}
                     ></span>
