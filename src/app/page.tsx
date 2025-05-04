@@ -55,7 +55,7 @@ const MessagingApp = () => {
     status: 'online',
   });
 
-  const [users, _setUsers] = useState<User[]>([
+  const [users] = useState<User[]>([
     {
       id: 'user-2',
       name: 'Jane Smith',

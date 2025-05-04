@@ -10,6 +10,9 @@ type CustomNextConfig = NextConfig & {
 };
 
 const nextConfig: CustomNextConfig = {
+  images: {
+    domains: ['api.dicebear.com'],
+  },
   experimental: {
     turbopack: false,
   },
