@@ -47,15 +47,15 @@ const avatars = {
   female: ['https://api.dicebear.com/9.x/pixel-art/svg?seed=John', 'https://api.dicebear.com/9.x/pixel-art/svg?seed=Jane', 'https://api.dicebear.com/9.x/pixel-art/svg?seed=Jane&hair=long01,long02,long03,long04,long05']
 };
 
-const  MessagingApp=()=>{
+const MessagingApp = () => {
   const [currentUser, setCurrentUser] = useState<User>({
     id: 'user-1',
     name: 'John Doe',
-    avatar:avatars.male[0],
+    avatar: avatars.male[0],
     status: 'online',
   });
 
-  const [users, setUsers] = useState<User[]>([
+  const [users, _setUsers] = useState<User[]>([
     {
       id: 'user-2',
       name: 'Jane Smith',
@@ -149,7 +149,7 @@ const  MessagingApp=()=>{
     setIsMounted(true);
   }, []);
 
- 
+
 
   // Simulate typing indicators
   useEffect(() => {
@@ -195,7 +195,7 @@ const  MessagingApp=()=>{
   }, [users, currentUser.id]);
 
 
-  
+
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -320,7 +320,7 @@ const  MessagingApp=()=>{
                 </svg>
                 <span className="ml-2 text-xl font-semibold text-gray-900">ChatPro</span>
               </div>
-              
+
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
               <div className="relative ml-3">
@@ -444,8 +444,8 @@ const  MessagingApp=()=>{
                       key={user.id}
                       onClick={() => setSelectedUser(user)}
                       className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full text-left ${selectedUser?.id === user.id
-                          ? 'bg-indigo-50 text-indigo-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                     >
                       <div className="flex-shrink-0 relative">
@@ -483,8 +483,8 @@ const  MessagingApp=()=>{
                       key={user.id}
                       onClick={() => setSelectedUser(user)}
                       className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full text-left ${selectedUser?.id === user.id
-                          ? 'bg-indigo-50 text-indigo-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                     >
                       <div className="flex-shrink-0 relative">
@@ -602,8 +602,8 @@ const  MessagingApp=()=>{
                         >
                           <div
                             className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow ${message.isUser
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-white text-gray-800'
+                              ? 'bg-indigo-600 text-white'
+                              : 'bg-white text-gray-800'
                               }`}
                           >
                             {!message.isUser && (
@@ -643,8 +643,8 @@ const  MessagingApp=()=>{
                                     key={emoji}
                                     onClick={() => handleReaction(message.id, emoji)}
                                     className={`text-xs px-1 py-0.5 rounded-full ${message.isUser
-                                        ? 'bg-indigo-700 text-white'
-                                        : 'bg-gray-200 text-gray-700'
+                                      ? 'bg-indigo-700 text-white'
+                                      : 'bg-gray-200 text-gray-700'
                                       } ${userIds.includes(currentUser.id) ? 'ring-1 ring-offset-1 ring-indigo-400' : ''}`}
                                   >
                                     {emoji} {userIds.length > 1 ? userIds.length : ''}
