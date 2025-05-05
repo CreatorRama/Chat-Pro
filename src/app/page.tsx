@@ -137,30 +137,50 @@ const defaultMessages: Message[] = [
   },
 ];
 
-//ponent
-const UserAvatar = memo(({ user, isSelected = false }: { user: User; isSelected?: boolean }) => (
-  <div className="flex-shrink-0 relative">
-    <img
-      className={`h-8 w-8 rounded-full ${isSelected ? 'ring-2 ring-indigo-500' : ''}`}
-      src={user.avatar}
-      alt={user.name}
-      loading="lazy"
-    />
-    <span
-      className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white ${statusColors[user.status]}`}
-    />
-  </div>
-));
+// Memoized User Avatar Component
+const UserAvatar = memo(({ user, isSelected = false, size = 'md' }: { 
+  user: User; 
+  isSelected?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+}) => {
+  const sizeClasses = {
+    sm: 'h-6 w-6',
+    md: 'h-8 w-8',
+    lg: 'h-10 w-10'
+  };
+  
+  const dotSizeClasses = {
+    sm: 'h-1.5 w-1.5',
+    md: 'h-2.5 w-2.5',
+    lg: 'h-3 w-3'
+  };
+
+  return (
+    <div className="flex-shrink-0 relative">
+      <img
+        className={`${sizeClasses[size]} rounded-full ${isSelected ? 'ring-2 ring-indigo-500' : ''}`}
+        src={user.avatar}
+        alt={user.name}
+        loading="lazy"
+      />
+      <span
+        className={`absolute bottom-0 right-0 block ${dotSizeClasses[size]} rounded-full ring-2 ring-white ${statusColors[user.status]}`}
+      />
+    </div>
+  );
+});
 
 UserAvatar.displayName = 'UserAvatar';
 
-
+// Memoized Status Menu Component
 const StatusMenu = memo(({ 
   showStatusMenu, 
-  updateStatus 
+  updateStatus,
+  position = 'right'
 }: { 
   showStatusMenu: boolean; 
-  updateStatus: (status: UserStatus) => void 
+  updateStatus: (status: UserStatus) => void;
+  position?: 'left' | 'right';
 }) => (
   <AnimatePresence>
     {showStatusMenu && (
@@ -169,7 +189,7 @@ const StatusMenu = memo(({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+        className={`origin-top-right absolute ${position === 'right' ? 'right-0' : 'left-0'} mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10`}
       >
         <div className="px-4 py-2 text-sm text-gray-700 border-b">
           <div className="font-medium">Status</div>
@@ -191,7 +211,7 @@ const StatusMenu = memo(({
 
 StatusMenu.displayName = 'StatusMenu';
 
-
+// Memoized Reaction Menu Component
 const ReactionMenu = memo(({ 
   messageId, 
   isUserMessage, 
@@ -208,7 +228,7 @@ const ReactionMenu = memo(({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className={`absolute ${isUserMessage ? 'left-0 bottom-8' : 'right-0 bottom-8'} bg-white rounded-full shadow-lg p-1 flex space-x-1 z-10`}
+      className={`absolute ${isUserMessage ? 'left-0 bottom-8' : 'right-0 bottom-8'} bg-white rounded-full shadow-lg p-1 flex flex-wrap gap-1 z-10 max-w-[200px]`}
     >
       {quickStatuses.map((emoji) => (
         <button
@@ -225,7 +245,7 @@ const ReactionMenu = memo(({
 
 ReactionMenu.displayName = 'ReactionMenu';
 
-
+// Memoized Message Component
 const MessageItem = memo(({ 
   message, 
   users, 
@@ -246,7 +266,7 @@ const MessageItem = memo(({
   
   return (
     <div className={`flex ${isUserMessage ? 'justify-end' : 'justify-start'}`}>
-      <div className={`relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow ${isUserMessage ? 'bg-indigo-600 text-white' : 'bg-white text-gray-800'}`}>
+      <div className={`relative max-w-xs md:max-w-md px-4 py-2 rounded-lg shadow ${isUserMessage ? 'bg-indigo-600 text-white' : 'bg-white text-gray-800'}`}>
         {!isUserMessage && sender && (
           <div className="text-xs font-semibold text-gray-500 mb-1">
             {sender.name}
@@ -332,13 +352,35 @@ const MessagingApp = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(users[0]);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [showReactionMenu, setShowReactionMenu] = useState<string | null>(null);
+  const [showSidebar, setShowSidebar] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Close sidebar when clicking outside
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const sidebarButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showSidebar && 
+          sidebarRef.current && 
+          !sidebarRef.current.contains(event.target as Node) &&
+          sidebarButtonRef.current &&
+          !sidebarButtonRef.current.contains(event.target as Node)) {
+        setShowSidebar(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSidebar]);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  
+  // Simulate typing indicators with optimized intervals
   useEffect(() => {
     const simulateTyping = () => {
       if (Math.random() > 0.5) {
@@ -385,7 +427,7 @@ const MessagingApp = () => {
     return () => clearInterval(interval);
   }, [users, currentUser.id]);
 
-  
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typingUsers]);
@@ -466,6 +508,7 @@ const MessagingApp = () => {
       <Head>
         <title>Professional Chat App</title>
         <meta name="description" content="Real-time messaging application" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
       {/* Navbar */}
@@ -473,6 +516,22 @@ const MessagingApp = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
+              <button
+                ref={sidebarButtonRef}
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="md:hidden mr-2 inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              >
+                <span className="sr-only">Open sidebar</span>
+                <svg
+                  className="h-6 w-6"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
               <div className="flex-shrink-0 flex items-center">
                 <svg
                   className="h-8 w-8 text-indigo-600"
@@ -515,7 +574,127 @@ const MessagingApp = () => {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        {/* Sidebar - Mobile Overlay */}
+        <AnimatePresence>
+          {showSidebar && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 bg-black z-20 md:hidden"
+                onClick={() => setShowSidebar(false)}
+              />
+              <motion.div
+                ref={sidebarRef}
+                initial={{ x: -300 }}
+                animate={{ x: 0 }}
+                exit={{ x: -300 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg md:hidden"
+              >
+                <div className="flex flex-col h-full">
+                  <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-gray-200">
+                    <h2 className="text-lg font-medium text-gray-900">Conversations</h2>
+                    <button className="ml-auto inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      New Chat
+                    </button>
+                  </div>
+                  <div className="flex-1 flex flex-col overflow-y-auto">
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg
+                            className="h-5 w-5 text-gray-400"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          placeholder="Search"
+                        />
+                      </div>
+                    </div>
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Online</h3>
+                    </div>
+                    <nav className="flex-1 px-2 space-y-1">
+                      {users
+                        .filter((user) => user.status !== 'offline')
+                        .map((user) => (
+                          <button
+                            key={user.id}
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowSidebar(false);
+                            }}
+                            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full text-left ${
+                              selectedUser?.id === user.id
+                                ? 'bg-indigo-50 text-indigo-700'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                          >
+                            <UserAvatar user={user} isSelected={selectedUser?.id === user.id} />
+                            <div className="ml-3 overflow-hidden">
+                              <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{statusMessages[user.status]}</p>
+                            </div>
+                            {typingUsers.some((u) => u.userId === user.id) && (
+                              <div className="ml-auto flex items-center">
+                                <div className="flex space-x-1">
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                                </div>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      <div className="px-4 py-2 border-t border-gray-200">
+                        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Offline</h3>
+                      </div>
+                      {users
+                        .filter((user) => user.status === 'offline')
+                        .map((user) => (
+                          <button
+                            key={user.id}
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowSidebar(false);
+                            }}
+                            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full text-left ${
+                              selectedUser?.id === user.id
+                                ? 'bg-indigo-50 text-indigo-700'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                          >
+                            <UserAvatar user={user} isSelected={selectedUser?.id === user.id} />
+                            <div className="ml-3 overflow-hidden">
+                              <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{user.lastActive || 'Offline'}</p>
+                            </div>
+                          </button>
+                        ))}
+                    </nav>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Sidebar - Desktop */}
         <div className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-64 border-r border-gray-200 bg-white">
             <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-gray-200">
@@ -614,8 +793,15 @@ const MessagingApp = () => {
             <>
               {/* Chat header */}
               <div className="h-16 flex-shrink-0 flex items-center px-4 border-b border-gray-200">
-                <div className="flex items-center">
-                  <UserAvatar user={selectedUser} />
+                <button
+                  onClick={() => setShowSidebar(true)}
+                  className="md:hidden mr-2 inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                >
+                  <span className="sr-only">Open sidebar</span>
+                  
+                </button>
+                <div className="flex items-center flex-1">
+                  <UserAvatar user={selectedUser} size="md" />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-gray-900">{selectedUser.name}</p>
                     <p className="text-xs text-gray-500">
@@ -658,22 +844,20 @@ const MessagingApp = () => {
                       />
                     </svg>
                   </button>
-                  <button className="ml-2 p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <svg
-                      className="h-6 w-6"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  <div className="relative ml-2 md:hidden">
+                    <button
+                      onClick={() => setShowStatusMenu(!showStatusMenu)}
+                      className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                      />
-                    </svg>
-                  </button>
+                      <span className="sr-only">Open user menu</span>
+                      <UserAvatar user={currentUser} size="sm" />
+                    </button>
+                    <StatusMenu 
+                      showStatusMenu={showStatusMenu} 
+                      updateStatus={updateStatus}
+                      position="left"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -706,7 +890,7 @@ const MessagingApp = () => {
                 ))}
                 {typingUsers.length > 0 && (
                   <div className="flex justify-start">
-                    <div className="relative max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow bg-white text-gray-800">
+                    <div className="relative max-w-xs md:max-w-md px-4 py-2 rounded-lg shadow bg-white text-gray-800">
                       <div className="text-xs font-semibold text-gray-500 mb-1">
                         {typingUsers.map((u) => u.name).join(', ')}
                       </div>
@@ -741,12 +925,13 @@ const MessagingApp = () => {
                     </svg>
                   </button>
                   <div className="flex-1 relative">
-                    <input
-                      className="block w-full h-14 rounded-md border border-red-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm resize-none"
+                    <textarea
+                      className="block w-full min-h-[56px] max-h-32 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm resize-none py-2 px-3"
                       placeholder="Type a message"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
+                      rows={1}
                     />
                     <div className="absolute right-2 bottom-2 flex space-x-1">
                       <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none">
@@ -792,7 +977,7 @@ const MessagingApp = () => {
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
-              <div className="text-center">
+              <div className="text-center p-4">
                 <svg
                   className="mx-auto h-12 w-12 text-gray-400"
                   xmlns="http://www.w3.org/2000/svg"
@@ -809,6 +994,12 @@ const MessagingApp = () => {
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900">No conversation selected</h3>
                 <p className="mt-1 text-sm text-gray-500">Select a user from the sidebar to start chatting</p>
+                <button
+                  onClick={() => setShowSidebar(true)}
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:hidden"
+                >
+                  Open Contacts
+                </button>
               </div>
             </div>
           )}
@@ -817,7 +1008,7 @@ const MessagingApp = () => {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center">
               <svg
@@ -834,23 +1025,20 @@ const MessagingApp = () => {
               </svg>
               <span className="ml-2 text-lg font-semibold text-gray-900">ChatPro</span>
             </div>
-            <div className="mt-4 md:mt-0">
-              <p className="text-center text-sm text-gray-500">
+            <div className="mt-2 md:mt-0">
+              <p className="text-center text-xs md:text-sm text-gray-500">
                 &copy; {new Date().getFullYear()} ChatPro. All rights reserved.
               </p>
             </div>
-            <div className="mt-4 md:mt-0 flex space-x-6">
-              <a href="#" className="text-gray-400 hover:text-gray-500">
-                <span className="sr-only">Privacy</span>
-                <span className="text-sm">Privacy Policy</span>
+            <div className="mt-2 md:mt-0 flex space-x-4 md:space-x-6">
+              <a href="#" className="text-xs md:text-sm text-gray-400 hover:text-gray-500">
+                Privacy
               </a>
-              <a href="#" className="text-gray-400 hover:text-gray-500">
-                <span className="sr-only">Terms</span>
-                <span className="text-sm">Terms of Service</span>
+              <a href="#" className="text-xs md:text-sm text-gray-400 hover:text-gray-500">
+                Terms
               </a>
-              <a href="#" className="text-gray-400 hover:text-gray-500">
-                <span className="sr-only">Contact</span>
-                <span className="text-sm">Contact Us</span>
+              <a href="#" className="text-xs md:text-sm text-gray-400 hover:text-gray-500">
+                Contact
               </a>
             </div>
           </div>
